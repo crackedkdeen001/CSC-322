@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAlgorithm", "GenericAlgorithm\GenericAlgorithm.csproj", "{CACAF21B-35C3-43AD-9ECC-CB21310B96FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAlgorithmTest", "GenericAlgorithmTest\GenericAlgorithmTest.csproj", "{CABBF0A0-9894-4D48-889E-4445AE90CBE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankApp", "BankApp\BankApp.csproj", "{E72DAEF4-718D-4CA1-9180-C0160E645712}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CACAF21B-35C3-43AD-9ECC-CB21310B96FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CACAF21B-35C3-43AD-9ECC-CB21310B96FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CACAF21B-35C3-43AD-9ECC-CB21310B96FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CACAF21B-35C3-43AD-9ECC-CB21310B96FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CABBF0A0-9894-4D48-889E-4445AE90CBE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CABBF0A0-9894-4D48-889E-4445AE90CBE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CABBF0A0-9894-4D48-889E-4445AE90CBE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CABBF0A0-9894-4D48-889E-4445AE90CBE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E72DAEF4-718D-4CA1-9180-C0160E645712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E72DAEF4-718D-4CA1-9180-C0160E645712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E72DAEF4-718D-4CA1-9180-C0160E645712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E72DAEF4-718D-4CA1-9180-C0160E645712}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

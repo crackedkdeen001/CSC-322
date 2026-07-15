@@ -10,7 +10,7 @@ public class GenericInsertionSort
     /// A method that sorts a list of object of type T in ascending order<br/>
     /// </summary>
     /// <summary>PreCondition: A list of made up of objects of type T that must implement the IComparable interface<br/></summary>
-    /// <summary>PostCondition: The list of objects in ascending order</summary>
+    /// <summary>PostCondition: Returns a list of objects of type T sorted in ascending order</summary>
     /// <param name="items">List of objects of type T</param>
     /// <typeparam name="T">The type</typeparam>
     /// <returns>Sorted list in ascending order</returns>
