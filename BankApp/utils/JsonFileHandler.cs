@@ -66,4 +66,9 @@ public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
         string jsonString = JsonSerializer.Serialize(items, _options);
         File.WriteAllText(FilePath, jsonString);
     }
+
+    public void Clear()
+    {
+        SaveItems([]);
+    }
 }
