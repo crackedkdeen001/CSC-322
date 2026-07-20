@@ -1,0 +1,20 @@
+[
+  {
+    "Id": 1,
+    "Username": "kamal",
+    "Balance": 21.02,
+    "DateIssued": "2026-07-20T18:11:58.1313088Z"
+  },
+  {
+    "Id": 2,
+    "Username": "ay",
+    "Balance": 0,
+    "DateIssued": "2026-07-20T18:12:50.8343882Z"
+  },
+  {
+    "Id": 3,
+    "Username": "ay",
+    "Balance": 2000,
+    "DateIssued": "2026-07-20T18:15:34.1317107Z"
+  }
+]

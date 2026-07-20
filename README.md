@@ -5,3 +5,9 @@
 - Write service layer for business logic
 - Create Bank class for implementing the service logic
 - Write tests for bank app and specification for every class and method in the project
+
+# added
+- IfileHandler Interface
+- Handle Update an account service method
+
+- Handle File not created exception

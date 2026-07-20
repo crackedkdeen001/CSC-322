@@ -1,56 +1,18 @@
-using BankApp.interfaces;
 using BankApp.Models;
-using BankApp.utils;
 
 namespace BankApp.repository;
 
 /// <summary>
-/// A 
+/// A repository used for interacting with the database of the accounts
 /// </summary>
-/// <param name="fileName"></param>
-public class AccountRepository(string fileName): IRepository<Account>
+public class AccountRepository(string fileName) : JsonRepository<Account>(fileName)
 {
-    private readonly JSONFileHandler<Account> _fileHandler = new(fileName);
-
-    public List<Account> GetAll()
-    {
-        var accounts = _fileHandler.LoadItems();
-        return accounts;
-    }
-
-    public Account? GetById(int id)
-    {
-        var accounts = GetAll();
-        foreach (var account in accounts)
-        {
-            if (account.Id == id)
-            {
-                return account;
-            }
-        }
-
-        return null;
-    }
-
-    public void Add(Account account)
-    {
-        var accounts = GetAll();
-        accounts.Add(account);
-        
-        _fileHandler.SaveItems(accounts);
-    }
-
-    public Account? Delete(int id)
-    {
-        var accounts = GetAll();
-        Account? deleted = GetById(id);
-        
-        if (deleted is not null)
-        {
-            accounts.Remove(deleted);
-            _fileHandler.SaveItems(accounts);
-        }
-        
-        return deleted;
-    }
+    /// <summary>
+    /// Gets an account using the account username<br/>
+    /// PreCondition: None<br/>
+    /// PostCondition: Returns the account object if an account has that username, null if none does
+    /// </summary>
+    /// <param name="name">The username to look for</param>
+    /// <returns>The account object if it exists, null if not</returns>
+    public Account? GetByName(string name) => GetAll().FirstOrDefault(account => account.Username == name);
 }

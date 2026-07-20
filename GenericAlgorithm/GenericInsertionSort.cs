@@ -1,7 +1,7 @@
 namespace GenericAlgorithm;
 
 /// <summary>
-/// A  class that implements a generic insertion algorithm
+/// A  class that implements a generic insertion sort algorithm
 /// </summary>
 // ReSharper disable once ClassNeverInstantiated.Global
 public class GenericInsertionSort
