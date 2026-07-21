@@ -1,4 +1,4 @@
-/*using BankApp.Models;
+/*using BankApp.models;
 using BankApp.repository;
 using BankApp.services;
 

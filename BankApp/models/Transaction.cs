@@ -1,11 +1,11 @@
 using BankApp.interfaces;
 
-namespace BankApp.Models;
+namespace BankApp.models;
 
 /// <summary>
 /// An object modelling a single movement of money into or out of an account
 /// </summary>
-public class Transaction : IHasID
+public class Transaction(int accountId, decimal amount, string description, TransactionType type) : IHasID
 {
     /// <summary>
     /// The unique identifier of the transaction.

@@ -1,13 +1,17 @@
 using BankApp.exceptions;
 using BankApp.interfaces;
-using BankApp.Models;
+using BankApp.models;
 using BankApp.repository;
 
 namespace BankApp.services;
 
+/// <summary>
+/// The service layer of the account
+/// </summary>
+/// <param name="filename"></param>
 public class AccountService(string filename)
 {
-    private IRepository<Account> _accRepository = new AccountRepository(filename);
+    private readonly IRepository<Account> _accRepository = new AccountRepository(filename);
     /// <summary>
     /// Creates an account in the database with the name and opening balance specified.<br/>
     /// The opening balance by default is 0.<br/>
@@ -108,7 +112,7 @@ public class AccountService(string filename)
     /// <summary>
     /// Deposits a specified amount of money into an account.<br/>
     /// PreCondition: The specified account must exist and the amount to be deposited must also be greater than 0<br/>
-    /// PostCondition: The new balance of the account is the previous balance + amount deposited.
+    /// PostCondition: The new balance of the account is the previous balance plus the amount deposited.
     ///</summary>
     /// <param name="accountId">The ID of the account</param>
     /// <param name="amount">Amount to be deposited</param>
@@ -127,6 +131,41 @@ public class AccountService(string filename)
         
         return (prevBalance, account.Balance);
     }
-    
+
+    /// <summary>
+    /// List all accounts currently opened<br/>
+    /// PreCondition: None
+    /// PostCondtion: None
+    /// </summary>
+    public List<Account> ListAccounts()
+    {
+        return _accRepository.GetAll();
+    }
+
+    /// <summary>
+    /// Deletes an account from the database. Throws an exception if the account doesn't exist.<br/>
+    /// Precondition: Account should exist in the database<br/>
+    /// Postcondition: Number of accounts reduces by 1 if the account exists.
+    /// </summary>
+    /// <param name="accountId">The ID of the account to be deleted</param>
+    /// <exception cref="AccountNotFoundException">Thrown if the account is not found</exception>
+    /// <returns>The deleted account</returns>
+    public Account DeleteAccount(int accountId)
+    {
+        var removed = _accRepository.Delete(accountId);
+
+        if (removed is null) throw new AccountNotFoundException();
+        return removed;
+    }
+
+    /// <summary>
+    /// Removes all accounts for the database<br/>
+    /// Precondition: None<br/>
+    /// Postcondition: Number of accounts in the database is equal to 0
+    /// </summary>
+    public void Clear()
+    {
+        _accRepository.Clear();
+    }
 }
 

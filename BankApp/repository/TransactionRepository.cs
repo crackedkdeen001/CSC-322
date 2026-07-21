@@ -1,4 +1,4 @@
-using BankApp.Models;
+using BankApp.models;
 
 namespace BankApp.repository;
 

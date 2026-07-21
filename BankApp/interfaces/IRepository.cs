@@ -9,4 +9,6 @@ public interface IRepository<T>
     T? Update(T updatedItem);
     T? Delete(int id);
     void Save(List<T> items);
+
+    void Clear();
 }

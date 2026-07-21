@@ -1,6 +1,6 @@
 using BankApp.interfaces;
 
-namespace BankApp.Models;
+namespace BankApp.models;
 
 /// <summary>
 /// An object modelling the account class

@@ -105,5 +105,10 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
         _fileHandler.SaveItems(items);
     }
 
+    public void Clear()
+    {
+        _fileHandler.Clear();
+    }
+
     private int _getNextId() => GetAll().Count == 0 ? 1 : GetAll().Count + 1;
 }
