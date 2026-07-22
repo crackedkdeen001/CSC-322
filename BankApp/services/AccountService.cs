@@ -89,20 +89,6 @@ public class AccountService(string filename)
     }
 
     /// <summary>
-    /// Returns the username of an account
-    /// </summary>
-    /// <param name="accountId">The ID of the account</param>
-    /// <returns>The username of the account holder</returns>
-    /// <exception cref="AccountNotFoundException">thrown if the account cannot be found</exception>
-    public string GetAccountUserName(int accountId)
-    {
-        var account = _accRepository.GetById(accountId);
-        if (account is null) throw new AccountNotFoundException();
-
-        return account.Username;
-    }
-
-    /// <summary>
     /// Gets the details of an account<br/>
     /// </summary>
     /// <param name="accountId">The ID of the account</param>
