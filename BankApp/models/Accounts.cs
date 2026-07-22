@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BankApp.interfaces;
 
 namespace BankApp.models;
@@ -9,6 +10,7 @@ namespace BankApp.models;
 /// <param name="balance">The opening balance of the account</param>
 public class Account(string username, decimal balance) : IHasID
 {
+    
     /// <summary>
     /// The unique identifier of the account
     /// </summary>

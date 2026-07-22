@@ -6,41 +6,38 @@ using BankApp.repository;
 namespace BankApp.services;
 
 /// <summary>
-/// The service layer of the account
+/// The service layer of the account containing the business logic of the account
 /// </summary>
 /// <param name="filename"></param>
 public class AccountService(string filename)
 {
-    private readonly IRepository<Account> _accRepository = new AccountRepository(filename);
+    private readonly AccountRepository _accRepository = new AccountRepository(filename);
     /// <summary>
     /// Creates an account in the database with the name and opening balance specified.<br/>
-    /// The opening balance by default is 0.<br/>
-    /// PreCondition: A non-empty username and an opening balance >= 0 must be supplied<br/>
-    /// PostCondition: A new account with said username and opening balance is added to the database.<br/>
     /// </summary>
     /// <param name="userName">The name of the owner of the account</param>
     /// <param name="openingBalance">The amount of money to open the account with. By default, it is 0.</param>
-    /// <exception cref="ArgumentException">If any of the arguments are invalid</exception>
-    public void CreateAccount(string userName, decimal openingBalance = 0m)
+    /// <returns>The account ID of the create account</returns>
+    /// <exception cref="ArgumentException">thrown if the username is empty or the opening balance is less than 0</exception>
+    public int CreateAccount(string userName, decimal openingBalance = 0m)
     {
         if (userName.IsWhiteSpace()) throw new ArgumentException("Username cannot be empty");
         if (openingBalance < 0m) throw new InvalidAmountException("Opening balance cannot be negative");
         
         var newAccount = new Account(userName, openingBalance);
         _accRepository.Add(newAccount);
+
+        return newAccount.Id;
     }
 
     /// <summary>
     /// Updates the username of an account<br/>
-    /// PreCondition: Account must exist for update to take place and the new username must be non-empty<br/>
-    /// PostCondition: Account username has been changed if the account exists.<br/>
-    /// An error is thrown if it doesn't exist.
     /// </summary>
     /// <param name="accountId">The ID of the account.</param>
     /// <param name="newUserName">The new username to change to.</param>
+    /// <returns>The updated account if it exists.</returns>
     /// <exception cref="AccountNotFoundException">Thrown if the account is not found.</exception>
     /// <exception cref="ArgumentException">If the new username is empty</exception>
-    /// <returns>The updated account if it exists.</returns>
     public void UpdateAccountUsername(int accountId, string newUserName)
     {
         if (newUserName.IsWhiteSpace()) throw new ArgumentException("Username must not be empty");
@@ -54,9 +51,6 @@ public class AccountService(string filename)
 
     /// <summary>
     /// Withdraws a specified amount of money from an account with enough cash.<br/>
-    /// PreCondition: The specified account must exist and the amount to be withdrawn <= account balance.<br/>
-    ///               The amount must also be greater than 0<br/>
-    /// PostCondition: The new balance of the account is the previous balance - amount withdrawn.
     /// </summary>
     /// <param name="accountId">The ID of the account</param>
     /// <param name="amount">Amount to be withdrawn</param>
@@ -81,11 +75,11 @@ public class AccountService(string filename)
 
 
     /// <summary>
-    /// Returns the current balance of an account. Throws an exception if the account does not exist<br/>
-    /// PostCondition: The account must exist in the database
+    /// Returns the current balance of an account<br/>
     /// </summary>
-    /// <param name="accountId"></param>
+    /// <param name="accountId">The ID of the specified account </param>
     /// <returns>The current balance of the account</returns>
+    /// <exception cref="AccountNotFoundException">thrown if the account doesn't exist</exception>
     public decimal GetBalance(int accountId)
     {
         var account = _accRepository.GetById(accountId);
@@ -95,12 +89,24 @@ public class AccountService(string filename)
     }
 
     /// <summary>
-    /// Gets the details of an account<br/>
-    /// Precondition: The account must exist<br/>
-    /// Postcondition: Nothing
+    /// Returns the username of an account
     /// </summary>
+    /// <param name="accountId">The ID of the account</param>
+    /// <returns>The username of the account holder</returns>
+    /// <exception cref="AccountNotFoundException">thrown if the account cannot be found</exception>
+    public string GetAccountUserName(int accountId)
+    {
+        var account = _accRepository.GetById(accountId);
+        if (account is null) throw new AccountNotFoundException();
+
+        return account.Username;
+    }
+
+    /// <summary>
+    /// Gets the details of an account<br/>
+    /// </summary>
+    /// <param name="accountId">The ID of the account</param>
     /// <exception cref="AccountNotFoundException">thrown if the account can't be found</exception>
-    /// <param name="accountId"></param>
     public void  GetAccountDetails(int accountId)
     {
         var account = _accRepository.GetById(accountId);
@@ -111,14 +117,12 @@ public class AccountService(string filename)
 
     /// <summary>
     /// Deposits a specified amount of money into an account.<br/>
-    /// PreCondition: The specified account must exist and the amount to be deposited must also be greater than 0<br/>
-    /// PostCondition: The new balance of the account is the previous balance plus the amount deposited.
     ///</summary>
     /// <param name="accountId">The ID of the account</param>
     /// <param name="amount">Amount to be deposited</param>
+    /// <returns>The previous balance before money had been deposited and the new balance after money has been deposited</returns>
     /// <exception cref="InvalidAmountException">thrown if the amount is less than 0</exception>
     /// <exception cref="AccountNotFoundException">thrown if the account was not found</exception>
-    /// <returns>The previous balance before money had been deposited and the new balance after money has been deposited</returns>
     public (decimal prevBalance, decimal newBalance) Deposit(int accountId, decimal amount)
     {
         var account = _accRepository.GetById(accountId);
@@ -144,7 +148,7 @@ public class AccountService(string filename)
 
     /// <summary>
     /// Deletes an account from the database. Throws an exception if the account doesn't exist.<br/>
-    /// Precondition: Account should exist in the database<br/>
+    /// Precondition: None<br/>
     /// Postcondition: Number of accounts reduces by 1 if the account exists.
     /// </summary>
     /// <param name="accountId">The ID of the account to be deleted</param>

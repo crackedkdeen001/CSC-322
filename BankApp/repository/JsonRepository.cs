@@ -15,10 +15,8 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
 
     /// <summary>
     /// Gets all objects from a specified JSON file <br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns a list of objects or an empty list if the JSON file is empty
     /// </summary>
-    /// <returns>List of objects or an  empty list</returns>
+    /// <returns>List of objects</returns>
     public List<T> GetAll()
     {
         return _fileHandler.LoadItems();
@@ -26,8 +24,6 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
 
     /// <summary>
     /// Gets an object by the ID<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns the object if found; null if it doesn't exist
     /// </summary>
     /// <param name="id">The ID of the object</param>
     /// <returns>The object if found, null if it doesn't exist</returns>
@@ -39,7 +35,7 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
 
     /// <summary>
     /// Adds an object to the database<br/>
-    /// PreCondition: The objects must exist<br/>
+    /// PreCondition: An object T must be supplied<br/>
     /// PostCondition: The number of objects in the database increases by 1
     /// </summary>
     /// <param name="item">Object to be added</param>
@@ -54,7 +50,7 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
 
     /// <summary>
     /// Updates an item in the database<br/>
-    /// PreCondition: The original item to be updated must exist
+    /// PreCondition: The original item to be updated must exist<br/>
     /// PostCondition: The original item's contents have been updated to the new item's contents
     /// </summary>
     /// 

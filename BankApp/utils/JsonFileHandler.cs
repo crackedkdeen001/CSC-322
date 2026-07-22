@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BankApp.interfaces;
 
 namespace BankApp.utils;
@@ -10,7 +11,14 @@ namespace BankApp.utils;
 public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
     where T : IHasID
 {
-    private readonly JsonSerializerOptions _options = new() { WriteIndented = true };
+    private readonly JsonSerializerOptions _options = new() {
+        WriteIndented = true,
+        IncludeFields = true, 
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = {
+        new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+        }
+    };
 
     private static readonly string DatabaseDirectory =
         Path.Combine(Directory.GetParent(AppContext.BaseDirectory).Parent?.Parent?.Parent?.FullName, "database");

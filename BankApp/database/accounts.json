@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": 1,
+    "username": "KAMAL",
+    "balance": 77195.40,
+    "dateIssued": "2026-07-22T08:31:38.9905816Z"
+  },
+  {
+    "id": 2,
+    "username": "KAMAL",
+    "balance": 0,
+    "dateIssued": "2026-07-22T08:44:37.4843251Z"
+  }
+]
