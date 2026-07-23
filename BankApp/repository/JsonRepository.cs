@@ -4,29 +4,33 @@ using BankApp.utils;
 namespace BankApp.repository;
 
 /// <summary>
-/// A repository containing general methods that both the Account and Transaction Repository share
+/// A repository that logic shared by every repository.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The type of item stored, which must have an id</typeparam>
+/// <param name="fileName">The name of the JSON file the items are stored in</param>
 public class JsonRepository<T>(string fileName) : IRepository<T>
     where T: IHasID
 {
-    private IFileHandler<T> _fileHandler = new JsonFileHandler<T>(fileName);
-
+    private readonly IFileHandler<T> _fileHandler = new JsonFileHandler<T>(fileName);
 
     /// <summary>
-    /// Gets all objects from a specified JSON file <br/>
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns every item in the file, or an empty list if there are none
     /// </summary>
-    /// <returns>List of objects</returns>
+    /// <returns>Every item in the file</returns>
     public List<T> GetAll()
     {
         return _fileHandler.LoadItems();
     }
 
     /// <summary>
-    /// Gets an object by the ID<br/>
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns the item with the given id, or null if no item has it
     /// </summary>
-    /// <param name="id">The ID of the object</param>
-    /// <returns>The object if found, null if it doesn't exist</returns>
+    /// <param name="id">The id of the item</param>
+    /// <returns>The matching item, or null</returns>
     public T? GetById(int id)
     {
         var item = GetAll().FirstOrDefault(item => item.Id == id);
@@ -34,11 +38,11 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
     }
 
     /// <summary>
-    /// Adds an object to the database<br/>
-    /// PreCondition: An object T must be supplied<br/>
-    /// PostCondition: The number of objects in the database increases by 1
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: gives the item the next free id, appends it and saves; the number of items grows by one
     /// </summary>
-    /// <param name="item">Object to be added</param>
+    /// <param name="item">The item to add</param>
     public void Add(T item)
     {
         var items = GetAll();
@@ -47,14 +51,14 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
         Save(items);
     }
 
-
     /// <summary>
-    /// Updates an item in the database<br/>
-    /// PreCondition: The original item to be updated must exist<br/>
-    /// PostCondition: The original item's contents have been updated to the new item's contents
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: replaces the stored item sharing updatedItem's id and returns it, or returns null and leaves
+    ///          the file unchanged if no item matches
     /// </summary>
-    /// 
-    /// <param name="updatedItem"></param>
+    /// <param name="updatedItem">The new version of the item, matched by id</param>
+    /// <returns>The updated item, or null if no item had that id</returns>
     public T? Update(T updatedItem)
     {
         var items = GetAll();
@@ -71,17 +75,17 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
     }
 
     /// <summary>
-    /// Deletes an object from the database and returns it<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Number of objects in the database is reduced by 1 if the object is found and returns the object;
-    ///                No-Op if the object is not found and null is returned.
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: removes the item with the given id and returns it, or returns null and leaves the file
+    ///          unchanged if no item matches
     /// </summary>
-    /// <param name="id">The ID of the object</param>
-    /// <returns>Deleted object if it exists, null if not.</returns>
+    /// <param name="id">The id of the item to remove</param>
+    /// <returns>The removed item, or null if no item had that id</returns>
     public T? Delete(int id)
     {
         var items = GetAll();
-        var deleted = GetById(id);
+        var deleted = items.FirstOrDefault(item => item.Id == id);
         if (deleted is not null)
         {
             items.Remove(deleted);
@@ -91,20 +95,31 @@ public class JsonRepository<T>(string fileName) : IRepository<T>
     }
 
     /// <summary>
-    /// Saves a list of objects into the database<br/>
-    /// Precondition: None<br/>
-    /// Postcondition: The database is replaced with the new list of values
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: replaces the file's contents with exactly the given items
     /// </summary>
-    /// <param name="items">List of values to save</param>
+    /// <param name="items">The items to save</param>
     public void Save(List<T> items)
     {
         _fileHandler.SaveItems(items);
     }
 
+    /// <summary>
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: removes every item, leaving the file empty
+    /// </summary>
     public void Clear()
     {
         _fileHandler.Clear();
     }
 
-    private int _getNextId() => GetAll().Count == 0 ? 1 : GetAll().Count + 1;
+    /// <summary>
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns 1 for an empty file, otherwise one more than the largest id currently stored.
+    /// </summary>
+    /// <returns>The id to give the next item added</returns>
+    private int _getNextId() => GetAll().Count == 0 ? 1 : GetAll().Max(item => item.Id) + 1;
 }

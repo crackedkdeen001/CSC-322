@@ -1,13 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using BankApp.interfaces;
 
 namespace BankApp.utils;
 
 /// <summary>
-/// Reads and writes a list of items to a JSON file on disk
+/// Reads and writes a list of items to a JSON file on disk, under a shared database directory.
 /// </summary>
-/// <param name="filePath">The path of the file to read from and write to</param>
+/// <param name="fileName">The name of the JSON file to read from and write to</param>
 public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
     where T : IHasID
 {
@@ -26,10 +27,25 @@ public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
     /// <summary>
     /// The full path of the file this handler reads from and writes to
     /// </summary>
-    public string FilePath { get; } = BuildFilePath(fileName);
+    private string FilePath { get; } = BuildFilePath(fileName);
 
+    /// <summary>
+    /// requires: fileName ends in ".json" and is not blank<br/>
+    /// modifies: the file system (creates the database directory if it is absent)<br/>
+    /// effects: returns the full path of the file under the database directory; throws ArgumentException if
+    ///          fileName is not a ".json" name or is blank
+    /// </summary>
+    /// <param name="fileName">The name of the JSON file</param>
+    /// <returns>The full path of the file under the database directory</returns>
+    /// <exception cref="ArgumentException">thrown if fileName is not a ".json" name or is blank</exception>
     private static string BuildFilePath(string fileName)
     {
+        string jsonPattern = @"\b\w+\.json$";
+        if (!Regex.IsMatch(fileName, jsonPattern))
+        {
+            throw new ArgumentException("Provided string is not a json file", fileName);
+        }
+        
         if (string.IsNullOrWhiteSpace(fileName))
         {
             throw new ArgumentException("File name cannot be empty", fileName);
@@ -40,9 +56,9 @@ public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
 
     }
     /// <summary>
-    /// Loads every item from the file<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns the items in the file, or an empty list if the file does not exist yet
+    /// requires: none<br/>
+    /// modifies: the file (creates it empty if it does not exist yet)<br/>
+    /// effects: returns every item in the file, or an empty list if the file is missing or empty
     /// </summary>
     /// <returns>The items in the file, or an empty list if the file does not exist yet</returns>
     public List<T> LoadItems()
@@ -64,9 +80,9 @@ public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
     }
 
     /// <summary>
-    /// Saves a list of items to the file, replacing whatever was there before<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The file contains exactly the given items
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: replaces the file's contents with exactly the given items
     /// </summary>
     /// <param name="items">The items to save</param>
     public void SaveItems(List<T> items)
@@ -75,6 +91,11 @@ public class JsonFileHandler<T>(string fileName) : IFileHandler<T>
         File.WriteAllText(FilePath, jsonString);
     }
 
+    /// <summary>
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: removes every item, leaving the file holding an empty list
+    /// </summary>
     public void Clear()
     {
         SaveItems([]);

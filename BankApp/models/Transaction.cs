@@ -1,7 +1,4 @@
-using System.Text.Json.Serialization;
 using BankApp.interfaces;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace BankApp.models;
 
@@ -37,7 +34,7 @@ public class Transaction(int accountId, decimal amount, TransactionType type, st
     public DateTime Time { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// The short note on what the transaction
+    /// The short note on what the transaction is about
     /// </summary>
     public string Description { get; set; } = description;
 

@@ -3,14 +3,16 @@ using BankApp.models;
 namespace BankApp.repository;
 
 /// <summary>
-/// A repository used for interacting with the database of the transactions
+/// A repository for transactions, adding lookups and deletes scoped to a single account on top of the shared
+/// storage logic in <see cref="JsonRepository{T}"/>.
 /// </summary>
+/// <param name="fileName">The name of the JSON file the transactions are stored in</param>
 public class TransactionRepository(string fileName) : JsonRepository<Transaction>(fileName)
 {
     /// <summary>
-    /// Gets every transaction belonging to one account, oldest first<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns that account's transactions, or an empty list if it has none
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns the account's transactions oldest first, or an empty list if it has none
     /// </summary>
     /// <param name="accountId">The id of the account whose transactions are wanted</param>
     /// <returns>That account's transactions, oldest first</returns>
@@ -21,12 +23,13 @@ public class TransactionRepository(string fileName) : JsonRepository<Transaction
             .ToList();
 
     /// <summary>
-    /// Deletes every transaction belonging to one account<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: No transaction in the database has the given account id
+    /// requires: none<br/>
+    /// modifies: the file<br/>
+    /// effects: removes every transaction belonging to the account and returns how many were removed; leaves
+    ///          the file unchanged if the account had none
     /// </summary>
     /// <param name="accountId">The id of the account whose transactions should go</param>
-    /// <returns>The number of transactions deleted</returns>
+    /// <returns>The number of transactions removed</returns>
     public int DeleteByAccountId(int accountId)
     {
         var transactions = GetAll();

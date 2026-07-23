@@ -1,269 +1,168 @@
-/*using BankApp.models;
-using BankApp.repository;
+using BankApp.models;
 using BankApp.services;
 
 namespace BankApp;
 
 /// <summary>
-/// The face of the bank. This is the only class the user of the program talks to - it takes the two
-/// services and drives them together so that money never moves without the history saying so
+/// The face of the bank and the only type the program talks to. It drives the account and transaction
+/// services together so that money never moves without the history recording it: every deposit, withdrawal
+/// and opening balance leaves a matching transaction behind.
 /// </summary>
 /// <remarks>
-/// Nothing here throws. When an operation cannot be carried out the bank writes a message explaining
-/// why and hands back null (or false), so the caller never has to catch anything. The services below
-/// still raise the rules as exceptions - the bank is the one place that turns those into messages.
+/// The bank does not catch anything. When a rule is broken the underlying service throws, and the caller
+/// (the menu in Program.cs) is the one place that turns those exceptions into messages.
 /// </remarks>
-public class Bank
+/// <param name="accountsFile">The name of the JSON file the accounts are stored in</param>
+/// <param name="transactionsFile">The name of the JSON file the transactions are stored in</param>
+public class Bank(string accountsFile, string transactionsFile)
 {
-    private readonly AccountService _accountService;
-    private readonly TransactionService _transactionService;
-    private readonly TextWriter _output;
+    private readonly AccountService _accounts = new(accountsFile);
+    private readonly TransactionService _transactions = new(transactionsFile);
 
     /// <summary>
-    /// Creates a bank whose accounts and transactions live in JSON files
-    /// </summary>
-    /// <param name="accountsFile">The path of the file holding the accounts</param>
-    /// <param name="transactionsFile">The path of the file holding the transactions</param>
-    /// <param name="output">Where messages are written. Defaults to the console</param>
-    public Bank(string accountsFile, string transactionsFile, TextWriter? output = null)
-        : this(
-            new AccountService(new AccountRepository(accountsFile)),
-            new TransactionService(new TransactionRepository(transactionsFile)),
-            output)
-    {
-    }
-
-    /// <summary>
-    /// Creates a bank on top of the given services. Used by the tests to run the bank without touching disk
-    /// </summary>
-    /// <param name="accountService">The service holding the account rules</param>
-    /// <param name="transactionService">The service holding the transaction rules</param>
-    /// <param name="output">Where messages are written. Defaults to the console</param>
-    public Bank(AccountService accountService, TransactionService transactionService, TextWriter? output = null)
-    {
-        _accountService = accountService;
-        _transactionService = transactionService;
-        _output = output ?? Console.Out;
-    }
-
-    /// <summary>
-    /// Opens a new account. If it is opened with money in it, that is recorded as its first credit<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The account exists and has an id, and its history holds an opening credit if it
-    /// was opened with money. If the username was blank or the opening balance negative, no account is
-    /// created and a message says why
+    /// requires: none<br/>
+    /// modifies: the account and transaction databases<br/>
+    /// effects: opens a new account and returns it; if the opening balance is positive, records it as the
+    ///          account's first credit; throws ArgumentException if the username is blank, or
+    ///          InvalidAmountException if the opening balance is negative
     /// </summary>
     /// <param name="username">The name of the account owner</param>
     /// <param name="openingBalance">The amount the account starts with</param>
-    /// <returns>The new account, or null if it could not be created</returns>
-    public Account? CreateAccount(string username, decimal openingBalance = 0m)
+    /// <returns>The newly opened account</returns>
+    public Account CreateAccount(string username, decimal openingBalance = 0m)
     {
-        try
-        {
-            Account account = _accountService.CreateAccount(username, openingBalance);
+        var account = _accounts.CreateAccount(username, openingBalance);
 
-            if (openingBalance > 0m)
-            {
-                _transactionService.Record(account.Id, openingBalance, TransactionType.Credit, "Opening balance");
-            }
-
-            return account;
-        }
-        catch (Exception ex)
+        if (openingBalance > 0m)
         {
-            return Report<Account>(ex);
+            _transactions.CreateTransaction(account.Id, openingBalance, TransactionType.Credit, "Opening balance");
         }
+
+        return account;
     }
 
     /// <summary>
-    /// Lists every account in the bank<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns all accounts, or an empty list if the bank has none
-    /// </summary>
-    /// <returns>All accounts, or an empty list if the bank has none</returns>
-    public List<Account> GetAllAccounts() => _accountService.GetAllAccounts();
-
-    /// <summary>
-    /// Gets one account<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns the account, or writes a message and returns null if no account has that id
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns the balance of the account with the given id; throws AccountNotFoundException if no
+    ///          account has that id
     /// </summary>
     /// <param name="id">The id of the account</param>
-    /// <returns>The account, or null if no account has that id</returns>
-    public Account? GetAccount(int id)
-    {
-        try
-        {
-            return _accountService.GetAccount(id);
-        }
-        catch (Exception ex)
-        {
-            return Report<Account>(ex);
-        }
-    }
+    /// <returns>The account's current balance</returns>
+    public decimal GetBalance(int id) => _accounts.GetAccount(id).Balance;
 
     /// <summary>
-    /// Shows an account's balance<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns the balance, or writes a message and returns null if no account has that id
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns the account with the given id; throws AccountNotFoundException if no account has that id
     /// </summary>
     /// <param name="id">The id of the account</param>
-    /// <returns>The account's current balance, or null if no account has that id</returns>
-    public decimal? GetBalance(int id)
-    {
-        try
-        {
-            return _accountService.GetBalance(id);
-        }
-        catch (Exception ex)
-        {
-            _output.WriteLine(ex.Message);
-            return null;
-        }
-    }
+    /// <returns>The account with the given id</returns>
+    public Account GetAccount(int id) => _accounts.GetAccount(id);
 
     /// <summary>
-    /// Pays money into an account and records the credit<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The balance has grown by the amount and the history holds a matching credit. If
-    /// the account does not exist or the amount is not positive, nothing changes and a message says why
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns every account in the bank, or an empty list if there are none
+    /// </summary>
+    /// <returns>All accounts</returns>
+    public List<Account> ListAccounts() => _accounts.ListAccounts();
+
+    /// <summary>
+    /// requires: none<br/>
+    /// modifies: the balance of the account with the given id, and the transaction database<br/>
+    /// effects: pays amount into the account, records a matching credit and returns the balance before and
+    ///          after; throws AccountNotFoundException if no account has that id, or InvalidAmountException if
+    ///          amount is not positive. Nothing is recorded if the deposit is rejected
     /// </summary>
     /// <param name="id">The id of the account</param>
     /// <param name="amount">How much to pay in</param>
     /// <param name="description">A note saying why the money came in</param>
-    /// <returns>True if the money was paid in, false if it was not</returns>
-    public bool Deposit(int id, decimal amount, string description = "Deposit")
+    /// <returns>The balance before and after the deposit</returns>
+    public (decimal prevBalance, decimal newBalance) Deposit(int id, decimal amount, string description = "Deposit")
     {
-        try
-        {
-            _accountService.Deposit(id, amount);
-            _transactionService.Record(id, amount, TransactionType.Credit, description);
+        var balances = _accounts.Deposit(id, amount);
+        _transactions.CreateTransaction(id, amount, TransactionType.Credit, description);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _output.WriteLine(ex.Message);
-            return false;
-        }
+        return balances;
     }
 
     /// <summary>
-    /// Takes money out of an account and records the debit<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The balance has shrunk by the amount and the history holds a matching debit. If
-    /// the account does not exist, the amount is not positive, or there is not enough money, neither the
-    /// balance nor the history changes and a message says why
+    /// requires: none<br/>
+    /// modifies: the balance of the account with the given id, and the transaction database<br/>
+    /// effects: takes amount out of the account, records a matching debit and returns the balance before and
+    ///          after; throws AccountNotFoundException if no account has that id, InvalidAmountException if
+    ///          amount is not positive, or InsufficientFundsException if there is not enough money. Nothing is
+    ///          recorded if the withdrawal is rejected
     /// </summary>
     /// <param name="id">The id of the account</param>
     /// <param name="amount">How much to take out</param>
     /// <param name="description">A note saying why the money went out</param>
-    /// <returns>True if the money was taken out, false if it was not</returns>
-    public bool Withdraw(int id, decimal amount, string description = "Withdrawal")
+    /// <returns>The balance before and after the withdrawal</returns>
+    public (decimal prevBalance, decimal newBalance) Withdraw(int id, decimal amount, string description = "Withdrawal")
     {
-        try
-        {
-            // Withdraw raises before touching the balance when there isn't enough money, so no
-            // transaction is recorded for a withdrawal that never happened.
-            _accountService.Withdraw(id, amount);
-            _transactionService.Record(id, amount, TransactionType.Debit, description);
+        // The service throws before touching the balance when the amount is bad or the funds are short, so
+        // reaching the line below means the money really moved and the debit belongs in the history.
+        var balances = _accounts.Withdraw(id, amount);
+        _transactions.CreateTransaction(id, amount, TransactionType.Debit, description);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _output.WriteLine(ex.Message);
-            return false;
-        }
+        return balances;
     }
 
     /// <summary>
-    /// Renames an account's owner<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The account's username is the new one, and its balance, id and history are
-    /// untouched. If the account does not exist or the new username is blank, nothing changes and a
-    /// message says why
+    /// requires: none<br/>
+    /// modifies: the account with the given id<br/>
+    /// effects: renames the account's owner and returns the updated account; throws ArgumentException if the
+    ///          new name is blank, or AccountNotFoundException if no account has that id
     /// </summary>
     /// <param name="id">The id of the account</param>
-    /// <param name="newUsername">The new username</param>
-    /// <returns>The updated account, or null if it could not be updated</returns>
-    public Account? UpdateAccountName(int id, string newUsername)
+    /// <param name="newName">The new username</param>
+    /// <returns>The updated account</returns>
+    public Account UpdateAccountName(int id, string newName)
     {
-        try
-        {
-            return _accountService.UpdateUsername(id, newUsername);
-        }
-        catch (Exception ex)
-        {
-            return Report<Account>(ex);
-        }
+        _accounts.UpdateAccountUsername(id, newName);
+
+        return _accounts.GetAccount(id);
     }
 
     /// <summary>
-    /// Closes an account and wipes its history with it, so nothing is left pointing at an account that
-    /// no longer exists<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Neither the account nor any of its transactions are in the database, and other
-    /// accounts are untouched. If the account does not exist, nothing changes and a message says why
+    /// requires: none<br/>
+    /// modifies: the account and transaction databases<br/>
+    /// effects: closes the account and deletes its transactions with it, then returns the closed account;
+    ///          throws AccountNotFoundException if no account has that id
     /// </summary>
     /// <param name="id">The id of the account</param>
-    /// <returns>The deleted account, or null if no account has that id</returns>
-    public Account? DeleteAccount(int id)
+    /// <returns>The deleted account</returns>
+    public Account DeleteAccount(int id)
     {
-        try
-        {
-            Account deleted = _accountService.DeleteAccount(id);
-            _transactionService.DeleteForAccount(id);
+        var deleted = _accounts.DeleteAccount(id);
+        _transactions.DeleteTransactions(id);
 
-            return deleted;
-        }
-        catch (Exception ex)
-        {
-            return Report<Account>(ex);
-        }
+        return deleted;
     }
 
     /// <summary>
-    /// Shows one account's history, oldest first<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns that account's transactions, or writes a message and returns null if no
-    /// account has that id
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns the account's transactions oldest first; throws AccountNotFoundException if no account
+    ///          has that id
     /// </summary>
     /// <param name="id">The id of the account</param>
-    /// <returns>That account's transactions oldest first, or null if no account has that id</returns>
-    public List<Transaction>? GetTransactionHistory(int id)
+    /// <returns>That account's transactions, oldest first</returns>
+    public List<Transaction> GetAccountTransactions(int id)
     {
-        try
-        {
-            // Asking about a stranger's history is a mistake worth reporting, not an empty list.
-            _accountService.GetAccount(id);
+        // Asking about a stranger's history is a mistake worth reporting, not an empty list, so make sure the
+        // account exists before reaching for its transactions.
+        _accounts.GetAccount(id);
 
-            return _transactionService.GetForAccount(id);
-        }
-        catch (Exception ex)
-        {
-            return Report<List<Transaction>>(ex);
-        }
+        return _transactions.GetAllTransactionsByAccount(id);
     }
 
     /// <summary>
-    /// Shows the whole bank's history, oldest first<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: Returns every transaction, or an empty list if there are none
+    /// requires: none<br/>
+    /// modifies: nothing<br/>
+    /// effects: returns every transaction in the bank, or an empty list if there are none
     /// </summary>
-    /// <returns>Every transaction, oldest first</returns>
-    public List<Transaction> GetAllTransactions() => _transactionService.GetAll();
-
-    /// <summary>
-    /// Writes out why an operation could not be carried out<br/>
-    /// PreCondition: None<br/>
-    /// PostCondition: The reason has been written to the output and null is returned
-    /// </summary>
-    /// <param name="ex">The rule that was broken</param>
-    /// <returns>Null, so callers can return this straight back</returns>
-    private T? Report<T>(Exception ex) where T : class
-    {
-        _output.WriteLine(ex.Message);
-        return null;
-    }
-}*/
+    /// <returns>Every transaction in the bank</returns>
+    public List<Transaction> GetAllTransactions() => _transactions.GetAllTransactions();
+}
