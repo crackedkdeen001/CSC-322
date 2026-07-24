@@ -7,10 +7,11 @@ namespace GenericAlgorithm;
 public class GenericInsertionSort
 {
     /// <summary>
-    /// A method that sorts a list of object of type T in ascending order<br/>
+    /// A method that sorts a list of objects of type T in ascending order<br/>
+    /// requires: a list of object T that implements the IComparable interface<br/>
+    /// modifies: items<br/>
+    /// effect: rearranges the list of object T in ascending order
     /// </summary>
-    /// <summary>PreCondition: A list of made up of objects of type T that must implement the IComparable interface<br/></summary>
-    /// <summary>PostCondition: Returns a list of objects of type T sorted in ascending order</summary>
     /// <param name="items">List of objects of type T</param>
     /// <typeparam name="T">The type</typeparam>
     /// <returns>Sorted list in ascending order</returns>

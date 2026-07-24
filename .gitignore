@@ -5,3 +5,9 @@ riderModule.iml
 /_ReSharper.Caches/
 .claude
 CLAUDE.md
+BankApp/docs/_site/                                                                                     
+BankApp/docs/api/
+
+GenericAlgorithm/docs/_site/                                                                                     
+GenericAlgorithm/docs/api/
+

@@ -1,5 +1,8 @@
 namespace BankApp.exceptions;
 
+/// <summary>
+/// An exception class thrown when an account cannot be found
+/// </summary>
 public class AccountNotFoundException: Exception
 {
     public AccountNotFoundException(): base("Account not found"){}
